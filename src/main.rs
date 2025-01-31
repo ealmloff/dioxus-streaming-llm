@@ -62,21 +62,9 @@ pub async fn mistral(text: String) -> Result<TextStream, ServerFnError> {
             MISTRAL.get().unwrap()
         }
     };
-    let markers = model.chat_markers().unwrap();
-    let message = markers.system_prompt_marker.to_string()
-        + "You are a helpful assistant who responds to user input with concise, helpful answers."
-        + markers.end_system_prompt_marker
-        + markers.user_marker
-        + &text
-        + markers.end_user_marker
-        + markers.assistant_marker;
+    let chat = model.chat();
 
-    let stream = model
-        .stream_text(&message)
-        .with_max_length(1000)
-        .with_stop_on(markers.end_assistant_marker.to_string())
-        .await
-        .unwrap();
+    let stream = chat(&text);
 
     Ok(TextStream::new(stream.map(Ok)))
 }

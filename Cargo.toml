@@ -7,15 +7,27 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/ealmloff/dioxus/", branch = "server-fn-streaming-demo", features = ["fullstack"] }
+dioxus = { version = "0.6", features = ["fullstack"] }
 serde = "1.0.159"
 futures = "0.3.30"
-kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "a12c0de", optional = true }
-tokio = { versino = "1", optional = true }
+kalosm = { git = "https://github.com/floneum/floneum", rev = "20568cf7d959035394b551af770ef8771dae7903", features = ["language"], optional = true }
+tokio = { version = "1", optional = true }
 once_cell = "1.19.0"
 
 [features]
 default = []
-server = ["dioxus/axum", "kalosm-llama", "tokio"]
+server = ["dioxus/server", "kalosm", "tokio"]
 web = ["dioxus/web"]
-metal = ["kalosm-llama?/metal"]
+metal = ["kalosm?/metal"]
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
