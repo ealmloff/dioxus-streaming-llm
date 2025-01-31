@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 use futures::StreamExt;
-use server_fn::codec::{StreamingText, TextStream};
 
 fn main() {
     launch(app)
@@ -47,24 +46,24 @@ fn app() -> Element {
     }
 }
 
-#[server(output = StreamingText)]
-pub async fn mistral(text: String) -> Result<TextStream, ServerFnError> {
-    use kalosm_llama::prelude::*;
+#[server(output = server_fn::codec::StreamingText)]
+pub async fn mistral(text: String) -> Result<server_fn::codec::TextStream, ServerFnError> {
+    use kalosm::language::*;
     use once_cell::sync::OnceCell;
 
-    static MISTRAL: OnceCell<Llama> = OnceCell::new();
+    static MODEL: OnceCell<Llama> = OnceCell::new();
 
-    let model = match MISTRAL.get() {
+    let model = match MODEL.get() {
         Some(model) => model,
         None => {
             let model = Llama::new_chat().await.unwrap();
-            let _ = MISTRAL.set(model);
-            MISTRAL.get().unwrap()
+            let _ = MODEL.set(model);
+            MODEL.get().unwrap()
         }
     };
-    let chat = model.chat();
+    let mut chat = model.chat();
 
-    let stream = chat(&text);
+    let stream = chat.into_add_message(&text);
 
-    Ok(TextStream::new(stream.map(Ok)))
+    Ok(server_fn::codec::TextStream::new(stream.map(Ok)))
 }
